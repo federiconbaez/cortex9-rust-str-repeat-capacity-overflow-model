@@ -1,0 +1,19 @@
+id,version,width,len,n,elem,computed_len,wrapped,outcome,where,capacity,final_len,oob_write_offset,oob_write_count,oob_elements_past_capacity
+small,1.29.0,64,3,0x4,1,12,False,OK,returned,12,12,,,
+small,1.29.1,64,3,0x4,1,12,False,OK,returned,12,12,,,
+doc-example-64,1.29.0,64,16,0xffffffffffffffff,1,18446744073709551600,True,ALLOC_FAILURE,"with_capacity: size > isize::MAX (assumed allocator refusal, handle_alloc_error)",0,0,,,
+doc-example-64,1.29.1,64,16,0xffffffffffffffff,1,18446744073709551600,True,PANIC,"slice.rs: checked_mul(n).expect(""capacity overflow"")",0,0,,,
+wrap-to-2-64,1.29.0,64,2,0x8000000000000001,1,2,True,OOB_WRITE,doubling loop copy_nonoverlapping,2,0,2,2,2
+wrap-to-2-64,1.29.1,64,2,0x8000000000000001,1,2,True,PANIC,"slice.rs: checked_mul(n).expect(""capacity overflow"")",0,0,,,
+wrap-reserve-32,1.29.0,32,3,0x55555556,1,2,True,OOB_WRITE,doubling loop copy_nonoverlapping,4,0,3,3,2
+wrap-reserve-32,1.29.1,32,3,0x55555556,1,2,True,PANIC,"slice.rs: checked_mul(n).expect(""capacity overflow"")",0,0,,,
+guard-16,1.29.0,16,1,0xffff,1,65535,False,PANIC,with_capacity: alloc_guard -> capacity overflow,0,0,,,
+guard-16,1.29.1,16,1,0xffff,1,65535,False,PANIC,with_capacity: alloc_guard -> capacity overflow,0,0,,,
+wrap-16,1.29.0,16,2,0x8001,1,2,True,OOB_WRITE,doubling loop copy_nonoverlapping,2,0,2,2,2
+wrap-16,1.29.1,16,2,0x8001,1,2,True,PANIC,"slice.rs: checked_mul(n).expect(""capacity overflow"")",0,0,,,
+zero,1.29.0,32,5,0x0,1,0,False,OK,n == 0 -> Vec::new(),0,0,,,
+zero,1.29.1,32,5,0x0,1,0,False,OK,n == 0 -> Vec::new(),0,0,,,
+exact-isize-max-16,1.29.0,16,7,0x1249,1,32767,False,OK,returned,32767,32767,,,
+exact-isize-max-16,1.29.1,16,7,0x1249,1,32767,False,OK,returned,32767,32767,,,
+elem4-checked-mul-32,1.29.0,32,1,0x40000001,4,1073741825,False,PANIC,with_capacity: cap.checked_mul(elem_size) -> capacity overflow,0,0,,,
+elem4-checked-mul-32,1.29.1,32,1,0x40000001,4,1073741825,False,PANIC,with_capacity: cap.checked_mul(elem_size) -> capacity overflow,0,0,,,

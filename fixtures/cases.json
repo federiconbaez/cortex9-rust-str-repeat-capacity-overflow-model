@@ -1,0 +1,30 @@
+{
+  "note": "Expectations derived by hand with modular arithmetic from slice.rs/raw_vec.rs/vec.rs at 1.29.0 and the 1.29.1 diff, before running the model. ALLOC_FAILURE on 64-bit is the model's stated assumption that the allocator refuses sizes > isize::MAX.",
+  "cases": [
+    {"id": "small", "width": 64, "len": 3, "n": 4, "elem": 1,
+     "expect": {"1.29.0": {"outcome": "OK", "final_len": 12}, "1.29.1": {"outcome": "OK", "final_len": 12}}},
+    {"id": "doc-example-64", "width": 64, "len": 16, "n": "0xffffffffffffffff", "elem": 1,
+     "why": "16*(2^64-1) mod 2^64 = 2^64-16 > isize::MAX",
+     "expect": {"1.29.0": {"outcome": "ALLOC_FAILURE"}, "1.29.1": {"outcome": "PANIC"}}},
+    {"id": "wrap-to-2-64", "width": 64, "len": 2, "n": "0x8000000000000001", "elem": 1,
+     "why": "2*(2^63+1) = 2^64+2 -> cap 2; first doubling writes 2 at offset 2",
+     "expect": {"1.29.0": {"outcome": "OOB_WRITE", "write_offset": 2, "write_count": 2, "elements_past_capacity": 2}, "1.29.1": {"outcome": "PANIC"}}},
+    {"id": "wrap-reserve-32", "width": 32, "len": 3, "n": "0x55555556", "elem": 1,
+     "why": "3*0x55555556 = 2^32+2 -> cap 2 < 3 -> reserve max(4,3)=4; doubling writes 3 at offset 3",
+     "expect": {"1.29.0": {"outcome": "OOB_WRITE", "write_offset": 3, "write_count": 3, "elements_past_capacity": 2}, "1.29.1": {"outcome": "PANIC"}}},
+    {"id": "guard-16", "width": 16, "len": 1, "n": "0xffff", "elem": 1,
+     "why": "no wrap; 65535 > isize::MAX (32767) and usize < 8 bytes -> alloc_guard",
+     "expect": {"1.29.0": {"outcome": "PANIC"}, "1.29.1": {"outcome": "PANIC"}}},
+    {"id": "wrap-16", "width": 16, "len": 2, "n": "0x8001", "elem": 1,
+     "why": "2*0x8001 = 0x10002 -> cap 2",
+     "expect": {"1.29.0": {"outcome": "OOB_WRITE", "write_offset": 2, "write_count": 2, "elements_past_capacity": 2}, "1.29.1": {"outcome": "PANIC"}}},
+    {"id": "zero", "width": 32, "len": 5, "n": 0, "elem": 1,
+     "expect": {"1.29.0": {"outcome": "OK", "final_len": 0}, "1.29.1": {"outcome": "OK", "final_len": 0}}},
+    {"id": "exact-isize-max-16", "width": 16, "len": 7, "n": 4681, "elem": 1,
+     "why": "7*4681 = 32767 = isize::MAX, accepted by alloc_guard",
+     "expect": {"1.29.0": {"outcome": "OK", "final_len": 32767}, "1.29.1": {"outcome": "OK", "final_len": 32767}}},
+    {"id": "elem4-checked-mul-32", "width": 32, "len": 1, "n": "0x40000001", "elem": 4,
+     "why": "len*n fits; cap*4 > 2^32-1 -> allocate_in checked_mul(elem_size) panics in both",
+     "expect": {"1.29.0": {"outcome": "PANIC"}, "1.29.1": {"outcome": "PANIC"}}}
+  ]
+}
